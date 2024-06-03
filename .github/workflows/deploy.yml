@@ -2,6 +2,10 @@
 # For devs working in other repos, 'Deploy to GH Pages' is a better description.
 name: Deploy to GH Pages
 
+# 'usds/website'
+env:
+  REPOSITORY: 'TomNUSDS/website-fork'
+
 on:
   # Run automatically when a Release is published
   release:
@@ -23,10 +27,6 @@ on:
       ref:
         required: true
         type: string
-
-# 'usds/website'
-env:
-  REPOSITORY: 'TomNUSDS/website-fork'
 
 # Set permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -64,14 +64,14 @@ jobs:
         id: pages
         uses: actions/configure-pages@v2
 
-      - name: Jekyll build for repo $REPOSITORY
-        if: github.repository == $REPOSITORY
+      - name: Jekyll build for repo ${{ env.REPOSITORY }}
+        if: github.repository == ${{ env.REPOSITORY }}
         run: bundle exec jekyll build
         env:
           JEKYLL_ENV: production
 
       - name: Jekyll build for repos other than usds/website
-        if: github.repository != $REPOSITORY
+        if: github.repository != ${{ env.REPOSITORY }}
         run: bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
 
       - name: Create a file to identify the git ref that deployed
@@ -89,11 +89,11 @@ jobs:
     steps:
       - name: For usds/website, check safety flag
         # This is an extra precaution against unintended deploys to the Pages space in usds/website.
-        if: github.repository == $REPOSITORY && vars.MOCK_PAGES_DEPLOY != 'FALSE'
+        if: github.repository == ${{ env.REPOSITORY }} && vars.MOCK_PAGES_DEPLOY != 'FALSE'
         run: |
-          echo "::error ::To enable deploy in $REPOSITORY, define MOCK_PAGES_DEPLOY=FALSE as Actions repo var under Settings/Security"
+          echo "::error ::To enable deploy in ${{ env.REPOSITORY }}, define MOCK_PAGES_DEPLOY=FALSE as Actions repo var under Settings/Security"
           exit 1
       - name: Deploy to GitHub Pages
-        if: github.repository != $REPOSITORY || vars.MOCK_PAGES_DEPLOY == 'FALSE'
+        if: github.repository != ${{ env.REPOSITORY }} || vars.MOCK_PAGES_DEPLOY == 'FALSE'
         id: deployment
         uses: actions/deploy-pages@v1
